@@ -7,7 +7,7 @@ The Foxit Cloud API provides modern cloud-based capabilities for PDF manipulatio
 
 ## Getting credentials
 You’ll need a client ID to use the Foxit PDF Editor Cloud APIs. To get one, the workflow is as follows:
-* STEP1: Register a Foxit account and login [Foxit Developer console](https://serviceapis.foxitsoftware.cn/dev-console).
+* STEP1: Register a Foxit account and login [Foxit Developer console](https://cloudapi.foxitsoftware.cn/dev-console).
 * STEP2: Activate your account and get $100 for trial.
 * STEP3: Create your own project.
 * STEP4: Copy Client Id for later usage.
