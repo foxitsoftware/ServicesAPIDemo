@@ -7,7 +7,7 @@ The Foxit Cloud API provides modern cloud-based capabilities for PDF manipulatio
 
 ## Getting credentials
 You’ll need a client ID to use the Foxit PDF Editor Cloud APIs. To get one, the workflow is as follows:
-* STEP1: Register a Foxit account and login [Foxit Developer console](https://serviceapi-stg.foxitcloud.com/dev-console/dashboard).
+* STEP1: Register a Foxit account and login [Foxit Developer console](https://serviceapis.foxitsoftware.cn/dev-console).
 * STEP2: Activate your account and get $100 for trial.
 * STEP3: Create your own project.
 * STEP4: Copy Client Id for later usage.
@@ -91,11 +91,11 @@ The example create new task from a DOC file to PDF file.
 * 1. Call the document manipulation API, eg. /document/create.
      Replace the value "AboutFoxit.doc" for inputDocument with your own input document path. 
 ```
-$ curl -X POST --header "Content-Type: multipart/form-data" --header "Accept: application/json" -F inputDocument=@"AboutFoxit.doc" -F format=word  "https://serviceapi-stg.foxitcloud.com/api/document/create?sn=testsn&clientId=01fxxxxxx16a7"
+$ curl -X POST --header "Content-Type: multipart/form-data" --header "Accept: application/json" -F inputDocument=@"AboutFoxit.doc" -F format=word  "https://servicesapi.foxitsoftware.cn.com/api/document/create?sn=testsn&clientId=01fxxxxxx16a7"
 ```
 * 2. Call "/task" API to get task status using taskId returned by step 1.
 ```
-$ curl -X GET --header "Accept: application/json" "https://serviceapi-stg.foxitcloud.com/api/task?sn=testsn&clientId=01fxxxxxx16a7&taskId=622xxxxxxdaf8"
+$ curl -X GET --header "Accept: application/json" "https://servicesapi.foxitsoftware.cn/api/task?sn=testsn&clientId=01fxxxxxx16a7&taskId=622xxxxxxdaf8"
 ```
 * 3. Call "/download" API to download doc using docId returned by step 2.
 
@@ -104,9 +104,10 @@ $ curl -X GET --header "Accept: application/json" "https://serviceapi-stg.foxitc
      Replace the value "AboutFoxit.pdf" for --output with your own output document path. 
 
 ```
-$ curl --location --request GET "https://serviceapi-stg.foxitcloud.com/api/download?sn=testsn&clientId=01fxxxxxx16a7&docId=622xxxxxx60d7&fileName=AboutFoxit.pdf" --output "AboutFoxit.pdf"
+$ curl --location --request GET "https://servicesapi.foxitsoftware.cn/api/download?sn=testsn&clientId=01fxxxxxx16a7&docId=622xxxxxx60d7&fileName=AboutFoxit.pdf" --output "AboutFoxit.pdf"
 ```
 ## License
 Copyright (c) Foxit Software. All rights reserved.
 
 Licensed under the MIT license.
+
