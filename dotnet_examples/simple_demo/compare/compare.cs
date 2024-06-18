@@ -45,7 +45,7 @@ namespace CompareCS
         private const string output_file_path = "../output_files/compare/CompareResultFiles.json";
 
         //TODO: replace with server base url
-        private IRestClient client = new RestClient(new RestClientOptions() { MaxTimeout = 60 * 1000, BaseUrl = new System.Uri("https://serviceapi-devcn.connectedpdf.com/api") });
+        private IRestClient client = new RestClient(new RestClientOptions() { MaxTimeout = 60 * 1000, BaseUrl = new System.Uri("https://servicesapi.foxitsoftware.cn/api") });
 
         static string GenerateMD5(string input)
         {

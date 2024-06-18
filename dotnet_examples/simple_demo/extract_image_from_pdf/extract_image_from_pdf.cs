@@ -12,7 +12,12 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using RestSharp;
 
@@ -50,8 +55,32 @@ namespace ExtractImageFromPDFCS
             secret_id = json.client_credentials.secret_id;
         }
 
+        static string GenerateMD5(string input)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] inputbytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashbytes = md5.ComputeHash(inputbytes);
+                return BitConverter.ToString(hashbytes).Replace("-", "").ToLower();
+            }
+        }
+
         private string ExtractPDFTask(string input_file_path, string mode = "extractImages", string page_range = "")
         {
+            var query_params = new Dictionary<string, string>
+            {
+                { "clientId", client_id },
+                { "mode", mode},
+            };
+
+            if (page_range != "")
+                query_params.Add("pageRange", page_range);
+
+            var sorted_params = query_params.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
+            var query_string = string.Join("&", sorted_params.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
+            query_string += "&sk=" + secret_id;
+            sn = GenerateMD5(query_string);
+
             var request = new RestRequest("document/extract", Method.Post);
             request
               .AddHeader("Accept", "application/json")
@@ -68,7 +97,7 @@ namespace ExtractImageFromPDFCS
                   response.Result.ResponseStatus == ResponseStatus.Completed)
             {
                 dynamic json = Newtonsoft.Json.Linq.JToken.Parse(response.Result.Content) as dynamic;
-                if (json.code == 0) return json.data.taskInfo.taskid;
+                if (json.code == 0) return json.data.taskInfo.taskId;
             }
 
             string message = string.Format("http response error: {0} : {1}",
@@ -78,6 +107,16 @@ namespace ExtractImageFromPDFCS
 
         private string GetTaskInfo(string task_id)
         {
+            var query_params = new Dictionary<string, string>
+            {
+                { "clientId", client_id },
+                { "taskId", task_id }
+            };
+            var sorted_params = query_params.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
+            var query_string = string.Join("&", sorted_params.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
+            query_string += "&sk=" + secret_id;
+            sn = GenerateMD5(query_string);
+
             RestRequest request = new RestRequest("task", Method.Get);
             request
               .AddHeader("Accept", "application/json")
@@ -114,7 +153,7 @@ namespace ExtractImageFromPDFCS
                     if (percentage == 100)
                     {
                         Console.WriteLine("Task completed.");
-                        return json.docid;
+                        return json.docId;
                     }
                 }
                 catch (RestException e)
@@ -134,6 +173,17 @@ namespace ExtractImageFromPDFCS
 
         private void DownLoadFileByDocId(string doc_id, string output_file_path)
         {
+            var query_params = new Dictionary<string, string>
+            {
+               { "clientId", client_id },
+               { "docId", doc_id },
+               { "fileName", Path.GetFileName(output_file_path)}
+            };
+            var sorted_params = query_params.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
+            var query_string = string.Join("&", sorted_params.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
+            query_string += "&sk=" + secret_id;
+            sn = GenerateMD5(query_string);
+
             var request = new RestRequest("download", Method.Get);
             request
               .AddQueryParameter("sn", sn)
