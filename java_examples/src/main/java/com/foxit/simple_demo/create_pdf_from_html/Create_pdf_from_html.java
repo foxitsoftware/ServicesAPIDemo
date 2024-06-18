@@ -30,6 +30,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 final class RestException extends Exception{
     public Response response;
 
@@ -73,8 +81,41 @@ public class Create_pdf_from_html {
         return HttpUrl.parse(base_url).newBuilder().addPathSegments(endpoint);
     }
 
+    private static String encode(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String generateMD5(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] digest = md.digest(input.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte b : digest) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
     //the format can be "url", "html", "shtml"
     private String createPDFTask(String url, String format) throws Exception {
+        String config_string = "{\r\n  \"width\": 640,\r\n  \"height\": 900,\r\n  \"rotate\": 0,\r\n  \"pageMode\": 1,\r\n  \"pageScaling\": 1\r\n}";
+        Map<String, String> query_params = new TreeMap<>();
+        query_params.put("clientId", client_id);
+        query_params.put("config", config_string);
+        query_params.put("format", format);
+        query_params.put("url", url);
+
+        String query_string = query_params.entrySet().stream()
+            .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
+            .collect(Collectors.joining("&"));
+
+        query_string += "&sk=" + secret_id;
+ 
+        sn = generateMD5(query_string);
+
         HttpUrl httpurl = buildURI("document/createFromHtml")
             .addQueryParameter("sn", sn)
             .addQueryParameter("clientId", client_id)
@@ -84,7 +125,7 @@ public class Create_pdf_from_html {
             .setType(MultipartBody.FORM)
             .addFormDataPart("url", url)
             .addFormDataPart("format", format)
-            .addFormDataPart("config", "{\r\n  \"width\": 640,\r\n  \"height\": 900,\r\n  \"rotate\": 0,\r\n  \"pageMode\": 1,\r\n  \"pageScaling\": 1\r\n}")
+            .addFormDataPart("config", config_string)
 			.build();
         
         Request request = new Request.Builder()
@@ -101,13 +142,24 @@ public class Create_pdf_from_html {
         if(object.get("code").getAsInt() == 0) {
             JsonObject object_data = object.get("data").getAsJsonObject();
             JsonObject object_task_info = object_data.get("taskInfo").getAsJsonObject();
-            return object_task_info.get("taskid").getAsString();
+            return object_task_info.get("taskId").getAsString();
         } else {
             throw new IOException("http response error:" + response);
         }        
     }
 
     private String getTaskInfo(String task_id) throws Exception {
+        Map<String, String> query_params = new TreeMap<>();
+        query_params.put("clientId", client_id);
+        query_params.put("taskId", task_id);
+
+        String query_string = query_params.entrySet().stream()
+            .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
+            .collect(Collectors.joining("&"));
+
+        query_string += "&sk=" + secret_id;
+        sn = generateMD5(query_string);
+
         HttpUrl url = buildURI("task")
             .addQueryParameter("sn", sn)
             .addQueryParameter("clientId", client_id)
@@ -142,7 +194,7 @@ public class Create_pdf_from_html {
                 JsonObject object = (JsonObject) parser.parse(task_info);
                 if(object.get("percentage").getAsInt() == 100){
                     System.out.println("Task completed.");
-                    return object.get("docid").getAsString();
+                    return object.get("docId").getAsString();
                 }
             } catch (RestException e) {
                 String jsonData = e.response.body().string();
@@ -163,6 +215,19 @@ public class Create_pdf_from_html {
 
     private void downLoadFileByDocId(String doc_id, String output_file_path) throws Exception {
         String file_name = (new File(output_file_path)).getName();
+
+        Map<String, String> query_params = new TreeMap<>();
+        query_params.put("clientId", client_id);
+        query_params.put("docId", doc_id);
+        query_params.put("fileName", file_name);
+
+        String query_string = query_params.entrySet().stream()
+            .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
+            .collect(Collectors.joining("&"));
+
+        query_string += "&sk=" + secret_id;
+        sn = generateMD5(query_string);
+
         HttpUrl url = buildURI("download")
             .addQueryParameter("sn", sn)
             .addQueryParameter("clientId", client_id)
