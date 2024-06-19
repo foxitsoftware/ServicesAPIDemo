@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/extract_image_from_pdf/Image.zip'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
+  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -153,6 +153,21 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
 function downloadFileByDocId(docId, outputFilePath){
  
   const writeStream = fs.createWriteStream(outputFilePath)
+  
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'docId': docId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
  
   writeStream.on('error',function (err) {
     console.log(err.message)
@@ -163,7 +178,7 @@ function downloadFileByDocId(docId, outputFilePath){
     method: 'get',
     url: '/download',
     responseType: 'stream',
-    params: {docId}
+    params: {sn, docId}
   }).then(function (res) {
     res.data.pipe(writeStream)
  

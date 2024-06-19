@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/compression/CompressionResultFile.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
+  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
