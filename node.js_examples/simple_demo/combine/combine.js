@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/combine/CombineResultFiles.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
+  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -59,8 +59,25 @@ function combineTask(input_zip_file){
       isRetainPageNum: false,
       bookmarkLevels: "1-4"
   }
+  configString = JSON.stringify(config);
+  formData.append('config', configString);
   
-  formData.append('config', JSON.stringify(config))
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'config': configString,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  request.defaults.params.sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+  
+  formData.append('config', configString);
   //Upload a file and create a new workflow task.
   return request({
     method: 'post',
@@ -73,7 +90,7 @@ function combineTask(input_zip_file){
 
     // Read the api doc about all result codes
     if(resultData.code === 0){
-      return resultData.data.taskInfo.taskid
+      return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
     console.log("Combine task error:", err.response.data);
@@ -82,10 +99,25 @@ function combineTask(input_zip_file){
 }
 
 function getTaskInfo(taskId){
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'taskId': taskId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+  
   return request({
     method: 'get',
     url: '/task',
-    params: {taskId}
+    params: {sn, taskId}
   }).then(function (res) {
     const resultData = res.data
     if(resultData.code === 0){
@@ -110,7 +142,7 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
       getTaskInfo(taskId).then(function(taskInfo){
         if(taskInfo.percentage === 100){
           console.log("Task completed.")
-          resolve(taskInfo.docid)
+          resolve(taskInfo.docId)
         }else{
           setTimeout(poll, intervalInMilliSeconds)
         }
@@ -130,7 +162,22 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
 function downloadFileByDocId(docId, outputFilePath){
  
   const writeStream = fs.createWriteStream(outputFilePath)
- 
+  
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'docId': docId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+  
   writeStream.on('error',function (err) {
     console.log(err.message)
     process.exit(1)
@@ -140,7 +187,7 @@ function downloadFileByDocId(docId, outputFilePath){
     method: 'get',
     url: '/download',
     responseType: 'stream',
-    params: {docId}
+    params: {sn, docId}
   }).then(function (res) {
     res.data.pipe(writeStream)
  

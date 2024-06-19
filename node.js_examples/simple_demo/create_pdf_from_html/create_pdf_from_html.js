@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/create_pdf_from_html/SDKDevelopers.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
+  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -43,10 +43,6 @@ const request = axios.create({
 
 //the format can be "url", "html", "shtml"
 function createPDFTask(url, format = 'url'){
-  const formData = new FormData()
-  formData.append('url', url)
-  formData.append('format', format)
-
   let config = {
     width: 640,
     height : 900,
@@ -54,7 +50,30 @@ function createPDFTask(url, format = 'url'){
     pageMode: 1,
     pageScaling: 1
   }
-  formData.append('config', JSON.stringify(config))
+  const configString = JSON.stringify(config);
+
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'url': url,
+  'format': format,
+  'config': configString
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  request.defaults.params.sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+
+  const formData = new FormData()
+  formData.append('url', url)
+  formData.append('format', format)
+
+  formData.append('config', configString)
   
   //Upload a file and create a new workflow task.
   return request({
@@ -68,7 +87,7 @@ function createPDFTask(url, format = 'url'){
 
     // Read the api doc about all result codes
     if(resultData.code === 0){
-      return resultData.data.taskInfo.taskid
+      return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
     console.log("Create pdf from html task error:", err.response.data);
@@ -77,10 +96,25 @@ function createPDFTask(url, format = 'url'){
 }
 
 function getTaskInfo(taskId){
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'taskId': taskId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+
   return request({
     method: 'get',
     url: '/task',
-    params: {taskId}
+    params: {sn, taskId}
   }).then(function (res) {
     const resultData = res.data
     if(resultData.code === 0){
@@ -105,7 +139,7 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
       getTaskInfo(taskId).then(function(taskInfo){
         if(taskInfo.percentage === 100){
           console.log("Task completed.")
-          resolve(taskInfo.docid)
+          resolve(taskInfo.docId)
         }else{
           setTimeout(poll, intervalInMilliSeconds)
         }
@@ -125,6 +159,21 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
 function downloadFileByDocId(docId, outputFilePath){
  
   const writeStream = fs.createWriteStream(outputFilePath)
+  
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'docId': docId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
  
   writeStream.on('error',function (err) {
     console.log(err.message)
@@ -135,7 +184,7 @@ function downloadFileByDocId(docId, outputFilePath){
     method: 'get',
     url: '/download',
     responseType: 'stream',
-    params: {docId}
+    params: {sn, docId}
   }).then(function (res) {
     res.data.pipe(writeStream)
  

@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/protect/AboutFoxitPassword123.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
+  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -42,6 +42,33 @@ const request = axios.create({
 });
 
 function protectPDFTask(inputFilePath){
+  let passwordProtection = {
+    userPassword : '123',
+    ownerPassword: '456'
+  }
+  const passwordString = JSON.stringify(passwordProtection);
+
+  let permission = ['EDIT_ANNOTATION', 'EDIT_CONTENT']
+  const permissionString =  JSON.stringify(permission);
+
+  const encryptionAlgorithm = 'AES_128';
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'passwordProtection': passwordString,
+  'permission': permissionString,
+  'encryptionAlgorithm': encryptionAlgorithm,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  request.defaults.params.sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+
   const readStream = fs.createReadStream(inputFilePath)
   readStream.on('error',function (err) {
     console.log('read input file error');
@@ -51,14 +78,11 @@ function protectPDFTask(inputFilePath){
 
   const formData = new FormData()
   formData.append('inputDocument', readStream)
-  let passwordProtection = {
-    userPassword : '123',
-    ownerPassword: '456'
-  }
-  formData.append('passwordProtection', JSON.stringify(passwordProtection))
-  let permission = ['EDIT_ANNOTATION', 'EDIT_CONTENT']
-  formData.append('permission', JSON.stringify(permission))
-  formData.append('encryptionAlgorithm', 'AES_128')
+
+  formData.append('passwordProtection', passwordString)
+
+  formData.append('permission', permissionString)
+  formData.append('encryptionAlgorithm', encryptionAlgorithm)
 
   //Upload a file and create a new workflow task.
   return request({
@@ -72,7 +96,7 @@ function protectPDFTask(inputFilePath){
 
     // Read the api doc about all result codes
     if(resultData.code === 0){
-      return resultData.data.taskInfo.taskid
+      return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
     console.log("Protect pdf task error:", err.response.data);
@@ -81,10 +105,25 @@ function protectPDFTask(inputFilePath){
 }
 
 function getTaskInfo(taskId){
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'taskId': taskId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+
   return request({
     method: 'get',
     url: '/task',
-    params: {taskId}
+    params: {sn, taskId}
   }).then(function (res) {
     const resultData = res.data
     if(resultData.code === 0){
@@ -109,7 +148,7 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
       getTaskInfo(taskId).then(function(taskInfo){
         if(taskInfo.percentage === 100){
           console.log("Task completed.")
-          resolve(taskInfo.docid)
+          resolve(taskInfo.docId)
         }else{
           setTimeout(poll, intervalInMilliSeconds)
         }
@@ -127,8 +166,22 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
 }
  
 function downloadFileByDocId(docId, outputFilePath){
- 
   const writeStream = fs.createWriteStream(outputFilePath)
+  
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'docId': docId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
  
   writeStream.on('error',function (err) {
     console.log(err.message)
@@ -139,7 +192,7 @@ function downloadFileByDocId(docId, outputFilePath){
     method: 'get',
     url: '/download',
     responseType: 'stream',
-    params: {docId}
+    params: {sn, docId}
   }).then(function (res) {
     res.data.pipe(writeStream)
  

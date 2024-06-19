@@ -32,7 +32,7 @@ const outputFilePath = '../output_files/compare/CompareResultFiles.json'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://servicesapi.foxitsoftware.cn/api/',
+  baseURL: 'https://serviceapi-devcn.connectedpdf.com/api/',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -43,6 +43,24 @@ const request = axios.create({
 });
 
 function comparePDFTask(inputFilePath1, inputFilePath2){
+  const resultType = "json";
+  const compareType = "all";
+
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'resultType': resultType,
+  'compareType': compareType
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  request.defaults.params.sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
   const readStream = fs.createReadStream(inputFilePath1)
   readStream.on('error',function (err) {
     console.log('read input file error');
@@ -60,8 +78,8 @@ function comparePDFTask(inputFilePath1, inputFilePath2){
   const formData = new FormData()
   formData.append('inputBaseDocument', readStream)
   formData.append('inputCompareDocument', readStream2)
-  formData.append('resultType', 'json')
-  formData.append('compareType', 'all')
+  formData.append('resultType', resultType)
+  formData.append('compareType', compareType)
 
   //Upload a file and create a new workflow task.
   return request({
@@ -75,7 +93,7 @@ function comparePDFTask(inputFilePath1, inputFilePath2){
 
     // Read the api doc about all result codes
     if(resultData.code === 0){
-      return resultData.data.taskInfo.taskid
+      return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
     console.log("Compare task error:", err.response.data);
@@ -84,10 +102,25 @@ function comparePDFTask(inputFilePath1, inputFilePath2){
 }
 
 function getTaskInfo(taskId){
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'taskId': taskId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
+
   return request({
     method: 'get',
     url: '/task',
-    params: {taskId}
+    params: {sn, taskId}
   }).then(function (res) {
     const resultData = res.data
     if(resultData.code === 0){
@@ -112,7 +145,7 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
       getTaskInfo(taskId).then(function(taskInfo){
         if(taskInfo.percentage === 100){
           console.log("Task completed.")
-          resolve(taskInfo.docid)
+          resolve(taskInfo.docId)
         }else{
           setTimeout(poll, intervalInMilliSeconds)
         }
@@ -132,6 +165,21 @@ function pollForDocId(taskId, intervalInMilliSeconds = 2000){
 function downloadFileByDocId(docId, outputFilePath){
  
   const writeStream = fs.createWriteStream(outputFilePath)
+  
+  const querystring = require('querystring');
+  const crypto = require('crypto'); 
+  let queryParams = {
+  'clientId': clientId,
+  'docId': docId,
+  };
+
+  const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
+  // Stringify the parameters
+  const querystringified = querystring.stringify(sortedParams);
+
+  const queryStringWithSecret = querystringified + '&sk=' + secretId;
+  // Generate signature using md5
+  const sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
  
   writeStream.on('error',function (err) {
     console.log(err.message)
@@ -142,7 +190,7 @@ function downloadFileByDocId(docId, outputFilePath){
     method: 'get',
     url: '/download',
     responseType: 'stream',
-    params: {docId}
+    params: {sn, docId}
   }).then(function (res) {
     res.data.pipe(writeStream)
  
