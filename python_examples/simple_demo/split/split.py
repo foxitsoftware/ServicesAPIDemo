@@ -14,6 +14,8 @@ import os
 import time
 import json
 import requests
+import urllib.parse
+import hashlib
 
 class Split:
     def __init__(self):
@@ -42,8 +44,18 @@ class Split:
             self.secret_id = load_dict['client_credentials']['secret_id']     
             
     def split_task(self, input_file):
+        configString = "{\r\n  \"pageCount\": 1\r\n}"
+        queryParams = {
+            'clientId': self.client_id,
+            'config': configString,
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
+    
         params = {'sn':self.sn, 'clientId':self.client_id}
-        payload = {"config": "{\r\n  \"pageCount\": 1\r\n}"}
+        payload = {"config": configString}
         filename = os.path.basename(input_file)
         files = {
             ('inputDocument', (filename, open(input_file,'rb'), 'application/pdf'))
@@ -58,12 +70,20 @@ class Split:
         response.raise_for_status()
         r_json = response.json()
         if(r_json['code'] == 0):
-            return r_json['data']['taskInfo']['taskid']
+            return r_json['data']['taskInfo']['taskId']
         else:
             raise Exception(r_json[u'msg'])
         
 
     def get_task_info(self, task_id):
+        queryParams = {
+            'clientId': self.client_id,
+            'taskId': task_id,
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
         params = {'sn':self.sn, 'clientId':self.client_id, 'taskId':task_id}
         response = requests.request("GET", self.build_uri('task'), 
                     params=params, timeout=60*1000)
@@ -74,7 +94,7 @@ class Split:
             percentage = r_json['data']['taskInfo']['percentage']
             docid = 0
             if percentage == 100:
-              docid = r_json['data']['taskInfo']['docid']
+              docid = r_json['data']['taskInfo']['docId']
             print('Task process is: %d' % percentage)
             return docid, percentage
         else:

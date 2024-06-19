@@ -14,6 +14,8 @@ import os
 import time
 import json
 import requests
+import urllib.parse
+import hashlib
 
 class ExtractTextFromPDF:
     def __init__(self):
@@ -42,6 +44,16 @@ class ExtractTextFromPDF:
             self.secret_id = load_dict['client_credentials']['secret_id']     
             
     def extract_text_from_pdf_task(self, input_file, mode = "extractText", page_range = "all"):
+        queryParams = {
+            'clientId': self.client_id,
+            'mode': mode,
+            'pageRange': page_range,
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
+    
         params = {'sn':self.sn, 'clientId':self.client_id}
         payload = {'mode': mode, 'pageRange': page_range}
         filename = os.path.basename(input_file)
@@ -58,12 +70,20 @@ class ExtractTextFromPDF:
         response.raise_for_status()
         r_json = response.json()
         if(r_json['code'] == 0):
-            return r_json['data']['taskInfo']['taskid']
+            return r_json['data']['taskInfo']['taskId']
         else:
             raise Exception(r_json[u'msg'])
         
 
     def get_task_info(self, task_id):
+        queryParams = {
+            'clientId': self.client_id,
+            'taskId': task_id,
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
         params = {'sn':self.sn, 'clientId':self.client_id, 'taskId':task_id}
         response = requests.request("GET", self.build_uri('task'), 
                     params=params, timeout=60*1000)
@@ -74,7 +94,7 @@ class ExtractTextFromPDF:
             percentage = r_json['data']['taskInfo']['percentage']
             docid = 0
             if percentage == 100:
-              docid = r_json['data']['taskInfo']['docid']
+              docid = r_json['data']['taskInfo']['docId']
             print('Task process is: %d' % percentage)
             return docid, percentage
         else:
@@ -101,6 +121,15 @@ class ExtractTextFromPDF:
 
     def down_load_file_by_docid(self, doc_id, output_file_path):
         filename = os.path.basename(output_file_path)
+        queryParams = {
+            'clientId': self.client_id,
+            'docId': doc_id,
+            'fileName':filename
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
         params = {'sn':self.sn, 'clientId':self.client_id, 'docId':doc_id, 'fileName':filename }
         # Download the convert streams.
         response = requests.request("GET", self.build_uri('download'),

@@ -14,6 +14,8 @@ import os
 import time
 import json
 import requests
+import urllib.parse
+import hashlib
 
 class Convert_pdf_to_others:
     def __init__(self):
@@ -42,8 +44,20 @@ class Convert_pdf_to_others:
             self.secret_id = load_dict['client_credentials']['secret_id']     
             
     def convertpdf_task(self, input_file, format = "image"):
+        payloadString = '{\r\n  \"dpi\": 96,\r\n  \"pageRange\": \"all\" \r\n}'
+
+        queryParams = {
+            'clientId': self.client_id,
+            'config': payloadString,
+            'format': format
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
+    
         params = {'sn':self.sn, 'clientId':self.client_id}
-        payload = {'format': format, 'config': "{\r\n  \"dpi\": 96,\r\n  \"pageRange\": \"all\" \r\n}"}
+        payload = {'format': format, 'config': payloadString}
         filename = os.path.basename(input_file)
         files = {
             ('inputDocument', (filename, open(input_file,'rb'), 'application/pdf'))
@@ -58,12 +72,21 @@ class Convert_pdf_to_others:
         response.raise_for_status()
         r_json = response.json()
         if(r_json['code'] == 0):
-            return r_json['data']['taskInfo']['taskid']
+            return r_json['data']['taskInfo']['taskId']
         else:
             raise Exception(r_json[u'msg'])
         
 
     def get_task_info(self, task_id):
+        queryParams = {
+            'clientId': self.client_id,
+            'taskId': task_id,
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
+    
         params = {'sn':self.sn, 'clientId':self.client_id, 'taskId':task_id}
         response = requests.request("GET", self.build_uri('task'), 
                     params=params, timeout=60*1000)
@@ -74,7 +97,7 @@ class Convert_pdf_to_others:
             percentage = r_json['data']['taskInfo']['percentage']
             docid = 0
             if percentage == 100:
-              docid = r_json['data']['taskInfo']['docid']
+              docid = r_json['data']['taskInfo']['docId']
             print('Task process is: %d' % percentage)
             return docid, percentage
         else:
@@ -101,6 +124,15 @@ class Convert_pdf_to_others:
 
     def down_load_file_by_docid(self, doc_id, output_file_path):
         filename = os.path.basename(output_file_path)
+        queryParams = {
+            'clientId': self.client_id,
+            'docId': doc_id,
+            'fileName':filename
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
         params = {'sn':self.sn, 'clientId':self.client_id, 'docId':doc_id, 'fileName':filename }
         # Download the convert streams.
         response = requests.request("GET", self.build_uri('download'),
