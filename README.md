@@ -25,7 +25,7 @@ You’ll need a client ID to use the Foxit PDF Editor Cloud APIs. To get one, th
 
 ### Python
 
-* Python : Version 2.7 or 3.6+. Download python Installation package, please visit the website [python.org](https://www.python.org/). 
+* Python : 3.6+. Download python Installation package, please visit the website [python.org](https://www.python.org/). 
 * Install Requests, simply run the following command in your terminal :
 ```
 $ python -m pip install requests
