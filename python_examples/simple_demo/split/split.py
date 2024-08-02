@@ -121,6 +121,15 @@ class Split:
 
     def down_load_file_by_docid(self, doc_id, output_file_path):
         filename = os.path.basename(output_file_path)
+        queryParams = {
+            'clientId': self.client_id,
+            'docId': doc_id,
+            'fileName':filename
+        }
+        sortedParams = dict(sorted(queryParams.items()))
+        queryString = urllib.parse.urlencode(sortedParams)
+        queryString += '&sk=' + urllib.parse.quote(self.secret_id)
+        self.sn = hashlib.md5(queryString.encode('utf-8')).hexdigest()
         params = {'sn':self.sn, 'clientId':self.client_id, 'docId':doc_id, 'fileName':filename }
         # Download the convert streams.
         response = requests.request("GET", self.build_uri('download'),
