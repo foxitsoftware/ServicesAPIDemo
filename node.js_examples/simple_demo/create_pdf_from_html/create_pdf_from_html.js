@@ -26,7 +26,7 @@ const secretId = credentials_params.client_credentials.secret_id;
 const sn = 'testsn'
 
 // TODO: replace with your own input doc path and output file path
-const url = 'https://developers.foxitsoftware.cn/version/home-page/'
+const url = 'https://developers.foxitsoftware.cn/'
 const outputFilePath = '../output_files/create_pdf_from_html/SDKDevelopers.pdf'
 
 // create axios instance and setup common request config 

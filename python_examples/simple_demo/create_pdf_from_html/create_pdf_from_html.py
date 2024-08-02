@@ -26,7 +26,7 @@ class Create_pdf_from_html:
         # (we ignore this parameter on trial version, input any string is ok)
         self.sn = 'testsn'
         # TODO: replace with your own input doc path and output file path
-        self.url = 'https://developers.foxitsoftware.cn/version/home-page/'
+        self.url = 'https://developers.foxitsoftware.cn/'
         self.output_file_path = '../output_files/create_pdf_from_html/SDKDevelopers.pdf'
 
         # TODO: replace with server base url

@@ -54,7 +54,7 @@ public class Create_pdf_from_html {
     // The signature of parameters, clientId and secretId. (we ignore this parameter  on trial version，input any string is ok)
     private String sn = "testsn";
     // TODO: replace with your own input doc path and output file path
-    private static final String url = "https://developers.foxitsoftware.cn/version/home-page/";
+    private static final String url = "https://developers.foxitsoftware.cn/";
     private static final String output_file_path = "output_files/create_pdf_from_html/SDKDevelopers.pdf";
     
     // TODO: replace with server base url
