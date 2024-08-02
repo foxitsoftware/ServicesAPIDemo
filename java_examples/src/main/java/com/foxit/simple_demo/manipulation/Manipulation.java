@@ -55,7 +55,7 @@ public class Manipulation {
     // The signature of parameters, clientId and secretId. (we ignore this parameter  on trial version，input any string is ok)
     private String sn = "testsn";
     // TODO: replace with your own input doc path and output file path
-    private static final String input_file_path = "./input_files/Annot_all.pdf";
+    private static final String input_file_path = "./input_files/AboutFoxit.pdf";
     private static final String output_file_path = "output_files/manipulation/Manipulation.pdf";
     
     // TODO: replace with server base url
