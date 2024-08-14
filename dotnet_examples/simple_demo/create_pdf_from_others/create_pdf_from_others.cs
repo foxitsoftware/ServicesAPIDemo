@@ -37,7 +37,8 @@ namespace CreatePDFFromOthersCS
     {
         private string client_id = "";
         private string secret_id = "";
-The signature of parameters will be calculated in the actual interface call in combination with the secret Id.        private string sn = "testsn";
+        //The signature of parameters will be calculated in the actual interface call in combination with the secret Id.
+        private string sn = "testsn";
         // TODO: replace with your own input doc path and output file path
         private const string input_file_path = "../input_files/AboutFoxit.doc";
         private const string output_file_path = "../output_files/create_pdf_from_others/AboutFoxit.pdf";
