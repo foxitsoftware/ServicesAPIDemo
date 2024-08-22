@@ -22,8 +22,7 @@ class Create_pdf_from_html:
 
         self.client_id = ''
         self.secret_id = ''
-        # The signature of parameters, clientId and secretId.
-        # (we ignore this parameter on trial version, input any string is ok)
+        # The signature of parameters will be calculated in the actual interface call in combination with the secret Id.
         self.sn = 'testsn'
         # TODO: replace with your own input doc path and output file path
         self.url = 'https://developers.foxitsoftware.cn/'
