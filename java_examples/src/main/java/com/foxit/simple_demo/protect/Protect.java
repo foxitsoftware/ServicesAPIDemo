@@ -52,7 +52,7 @@ public class Protect {
 
     private String client_id = "";
     private String secret_id = "";
-    // The signature of parameters, clientId and secretId. (we ignore this parameter  on trial version，input any string is ok)
+    // The signature of parameters will be calculated in the actual interface call in combination with the secret Id.
     private String sn = "testsn";
     // TODO: replace with your own input doc path and output file path
     private static final String input_file_path = "./input_files/Annot_all.pdf";
