@@ -22,7 +22,7 @@ const credentials_params = require('../foxit_cloud_api_credentials.json');
 const clientId = credentials_params.client_credentials.client_id;
 const secretId = credentials_params.client_credentials.secret_id;
 
-// The signature of parameters, clientId and secret Id. (we ignore this parameter  on trial version，input any string is ok)
+// The signature of parameters will be calculated in the actual interface call in combination with the secret Id.
 const sn = 'testsn'
 
 // TODO: replace with your own input doc path and output file path
