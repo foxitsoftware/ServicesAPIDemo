@@ -44,6 +44,9 @@ $ python -m pip install requests
  * Download the curl binary from [curl.se](https://curl.se/download.html).
  * Add the curl binary to your system environment path.
 
+### PHP
+* Install PHP >= 8.4.3 and enable curl.
+
 ## Running the examples
 
 ### Dotnet
@@ -106,6 +109,13 @@ $ curl -X GET --header "Accept: application/json" "https://servicesapi.foxitsoft
 ```
 $ curl --location --request GET "https://servicesapi.foxitsoftware.cn/api/download?sn=testsn&clientId=01fxxxxxx16a7&docId=622xxxxxx60d7&fileName=AboutFoxit.pdf" --output "AboutFoxit.pdf"
 ```
+
+### PHP
+```
+$ cd php_examples/simple_demo/create_pdf_from_others/
+$ php create_pdf_from_others.php
+```
+
 ## License
 Copyright (c) Foxit Software. All rights reserved.
 
