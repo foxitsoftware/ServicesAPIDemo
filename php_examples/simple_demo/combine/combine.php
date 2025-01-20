@@ -125,7 +125,7 @@ class Combine {
             echo "Task process is: $percentage%\n";
             return [$docId, $percentage];
         } else {
-            throw new Exception($responseData['task_info']);
+            throw new Exception($responseData['msg']);
         }
     }
 

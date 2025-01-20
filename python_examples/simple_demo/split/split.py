@@ -97,7 +97,7 @@ class Split:
             print('Task process is: %d' % percentage)
             return docid, percentage
         else:
-            raise Exception(r_json['task_info'])
+            raise Exception(r_json['msg'])
 
     def poll_for_docid(self, task_id, interval_in_miliseconds=2000):
         while True:

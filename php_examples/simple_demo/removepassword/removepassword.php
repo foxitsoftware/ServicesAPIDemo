@@ -111,7 +111,7 @@ class Removepassword
             echo "Task progress: $percentage%\n";
             return [$docId, $percentage];
         } else {
-            throw new Exception($response['task_info']);
+            throw new Exception($response['msg']);
         }
     }
 
