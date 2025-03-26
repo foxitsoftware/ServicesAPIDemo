@@ -151,7 +151,7 @@ class Pages_is_scanned {
             $pagesIsScannedResult = $this->pollForResult($taskId);
 			$jsonData = json_encode($pagesIsScannedResult, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 			echo $jsonData;
-			echo "\n"
+			echo "\n";
             echo "Scanned PDF file successfully!\n";
         } catch (Exception $e) {
             echo $e->getMessage() . "\n";
