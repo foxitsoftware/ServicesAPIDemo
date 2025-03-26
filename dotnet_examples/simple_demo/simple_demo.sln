@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "manipulation", "manipulatio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "split", "split\split.csproj", "{07C66785-A863-4A67-94B8-2ABF7BE005F8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ocr", "ocr\ocr.csproj", "{18A17C25-5ACE-4F66-B551-9A0CF9F75962}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{07C66785-A863-4A67-94B8-2ABF7BE005F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07C66785-A863-4A67-94B8-2ABF7BE005F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07C66785-A863-4A67-94B8-2ABF7BE005F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18A17C25-5ACE-4F66-B551-9A0CF9F75962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18A17C25-5ACE-4F66-B551-9A0CF9F75962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18A17C25-5ACE-4F66-B551-9A0CF9F75962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18A17C25-5ACE-4F66-B551-9A0CF9F75962}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
