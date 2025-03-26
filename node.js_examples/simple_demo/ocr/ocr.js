@@ -89,7 +89,7 @@ function ocrTask(input_file){
       return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
-    console.log("Combine task error:", err.response.data);
+    console.log("OCR task error:", err.response.data);
     throw err
   })
 }
