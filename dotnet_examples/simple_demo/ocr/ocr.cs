@@ -7,7 +7,7 @@
 // You cannot distribute any part of Foxit Cloud API to any third party or general public,
 // unless there is a separate license agreement with Foxit Software Inc. which explicitly grants you such rights.
 //
-// This file contains an example to demonstrate how to use Foxit Cloud API to combine pdf files to one pdf file.
+// This file contains an example to demonstrate how to use Foxit Cloud API to ocr pdf file.
 // NOTE: before using this demo, you need to add the NuGet package RestSharp 110.2.0 and Newtonsoft.Json latest version.
 
 
