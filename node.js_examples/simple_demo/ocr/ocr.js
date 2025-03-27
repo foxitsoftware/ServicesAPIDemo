@@ -60,7 +60,7 @@ function ocrTask(input_file){
   let queryParams = {
   'clientId': clientId,
   'lang': 'eng',
-  'outputFormat': 'txt'
+  'outputFormat': 'text'
   };
 
   const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
