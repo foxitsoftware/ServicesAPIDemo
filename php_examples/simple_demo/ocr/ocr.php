@@ -41,7 +41,7 @@ class OCR {
         $queryParams = [
             'clientId' => $this->clientId,
             'lang' => "eng",
-			'outputFormat' => "txt"
+			'outputFormat' => "text"
         ];
         ksort($queryParams);
         $queryString = http_build_query($queryParams) . '&sk=' . rawurlencode($this->secretId);
@@ -56,7 +56,7 @@ class OCR {
         $postData = [
             'lang' => "eng",
             'inputDocument' => $file,
-			'outputFormat' => "txt"
+			'outputFormat' => "text"
         ];
 
         $ch = curl_init($this->buildUri('document/ocr') . '?' . http_build_query($params));

@@ -53,7 +53,7 @@ function ocrTask(input_file){
   formData.append('inputDocument', readStream)
 
   formData.append('lang', 'eng');
-  formData.append('outputFormat', 'txt');
+  formData.append('outputFormat', 'text');
   
   const querystring = require('querystring');
   const crypto = require('crypto'); 
@@ -72,7 +72,7 @@ function ocrTask(input_file){
   request.defaults.params.sn = crypto.createHash('md5').update(queryStringWithSecret).digest('hex');
   
   formData.append('lang', 'eng');
-  formData.append('outputFormat', 'txt');
+  formData.append('outputFormat', 'text');
 	
   //Upload a file and create a new workflow task.
   return request({

@@ -67,7 +67,7 @@ namespace OCRCS
         private string OCRTask(string input_file)
         {
             string lang = "eng";
-            string output_format = "txt";
+            string output_format = "text";
 
             var query_params = new Dictionary<string, string>
             {

@@ -42,7 +42,7 @@ class OCR:
             self.secret_id = load_dict['client_credentials']['secret_id']     
             
     def ocr_task(self, input_file):
-        payload = {'lang': "eng", 'outputFormat': "txt"}
+        payload = {'lang': "eng", 'outputFormat': "text"}
         filename = os.path.basename(input_file)
         files = {
             ('inputDocument', (filename, open(input_file,'rb'), 'application/pdf'))
@@ -51,7 +51,7 @@ class OCR:
         queryParams = {
             'clientId': self.client_id,
             'lang': "eng",
-            'outputFormat': "txt",
+            'outputFormat': "text",
         }
         sortedParams = dict(sorted(queryParams.items()))
         queryString = urllib.parse.urlencode(sortedParams)

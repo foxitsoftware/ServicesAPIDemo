@@ -104,7 +104,7 @@ public class OCR {
 
     private String ocrTask(String input_file) throws Exception {
         String lang = "eng";
-		String outputFormat = "txt";
+		String outputFormat = "text";
 		
         Map<String, String> query_params = new TreeMap<>();
         query_params.put("clientId", client_id);
