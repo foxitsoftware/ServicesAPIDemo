@@ -7,7 +7,7 @@
 # You cannot distribute any part of Foxit Cloud API to any third party or general public,
 # unless there is a separate license agreement with Foxit Software Inc. which explicitly grants you such rights.
 #
-# This file contains an example to demonstrate how to use Foxit Cloud API to check the PDF pages whether is scanned or not.
+# This file contains an example to demonstrate how to use Foxit Cloud API to get the PDF pages' info.
 # NOTE: The first step to install requests, simply run this simply command "python -m pip install requests".
 
 import os
@@ -17,7 +17,7 @@ import requests
 import urllib.parse
 import hashlib
 
-class PagesIsScanned:
+class PagesBasicInfo:
     def __init__(self):
 
         self.client_id = ''
@@ -25,7 +25,7 @@ class PagesIsScanned:
         # The signature of parameters will be calculated in the actual interface call in combination with the secret Id.
         self.sn = 'testsn'
         # TODO: replace with your own input doc path and output file path
-        self.input_file_path = '../input_files/AboutFoxit_ocr.pdf'
+        self.input_file_path = '../input_files/AboutFoxit.pdf'
 
         # TODO: replace with server base url
         self.base_url = 'https://servicesapi.foxitsoftware.cn/api'
@@ -40,7 +40,7 @@ class PagesIsScanned:
             self.client_id = load_dict['client_credentials']['client_id']
             self.secret_id = load_dict['client_credentials']['secret_id']     
             
-    def pages_is_scanned_task(self, input_file):
+    def pages_basic_info_task(self, input_file):
         payload = {'pageRange': "all"}
         filename = os.path.basename(input_file)
         files = {
@@ -61,7 +61,7 @@ class PagesIsScanned:
         # In the event you are posting a very large file as a multipart/form-data request, 
         # you may want to stream the request. By default, requests does not support this, 
         # but there is a separate package which does - requests-toolbelt.
-        response = requests.request("POST", self.build_uri('document/pagesIsScanned'), 
+        response = requests.request("POST", self.build_uri('document/pagesBasicInfo'), 
                     params=params, data=payload, files=files, timeout=60*1000)
         response.raise_for_status()
         r_json = response.json()
@@ -89,21 +89,21 @@ class PagesIsScanned:
         r_json = response.json()
         if(r_json['code'] == 0):
             percentage = r_json['data']['taskInfo']['percentage']
-            pages_is_scanned_result = 0
+            pages_info_result = 0
             if percentage == 100:
-              pages_is_scanned_result = r_json['data']['taskInfo']['pagesIsScannedResult']
+              pages_info_result = r_json['data']['taskInfo']['pagesInfo']
             print('Task process is: %d' % percentage)
-            return pages_is_scanned_result, percentage
+            return pages_info_result, percentage
         else:
             raise Exception(r_json['msg'])
 
     def poll_for_result(self, task_id, interval_in_miliseconds=2000):
         while True:
             try:                
-                pages_is_scanned_result, percentage = self.get_task_info(task_id)
+                pages_info_result, percentage = self.get_task_info(task_id)
                 if percentage == 100:
                     print('Task completed.')
-                    return pages_is_scanned_result                       
+                    return pages_info_result                       
             except requests.exceptions.HTTPError as e:
                 r_json = e.response.json()
                 # when task is running, the task api will return error.
@@ -119,11 +119,11 @@ class PagesIsScanned:
     def start(self):
         try:
             self.get_credentials_params('../foxit_cloud_api_credentials.json')
-            task_id = self.pages_is_scanned_task(self.input_file_path)
-            pages_is_scanned_result = self.poll_for_result(task_id)
-            json_data = json.dumps(pages_is_scanned_result, ensure_ascii=False, indent=4)
+            task_id = self.pages_basic_info_task(self.input_file_path)
+            pages_info_result = self.poll_for_result(task_id)
+            json_data = json.dumps(pages_info_result, ensure_ascii=False, indent=4)
             print(json_data)
-            print('Check scanned PDF pages successfully!')
+            print('Get page basic info successfully!')
         except requests.exceptions.Timeout as e:
             print(e)
         except requests.exceptions.HTTPError as e:
@@ -134,5 +134,5 @@ class PagesIsScanned:
             print(e)
         
 if __name__ == '__main__':
-    pages_is_scanned = PagesIsScanned()
-    pages_is_scanned.start()
+    pages_basic_info = PagesBasicInfo()
+    pages_basic_info.start()
