@@ -7,7 +7,7 @@
 // You cannot distribute any part of Foxit Cloud API to any third party or general public,
 // unless there is a separate license agreement with Foxit Software Inc. which explicitly grants you such rights.
 //
-// This file contains an example to demonstrate how to use Foxit Cloud API to check the PDF pages whether is scanned or not.
+// This file contains an example to demonstrate how to use Foxit Cloud API to get the PDF pages's information.
 // NOTE: make sure you have NodeJs version >= 12.0 installed.
 // You can use any http-client library you like,  here we use the popular "axios".
 
@@ -26,7 +26,7 @@ const secretId = credentials_params.client_credentials.secret_id;
 const sn = 'testsn'
 
 // TODO: replace with your own input doc path and output file path
-const inputFilePath = '../input_files/AboutFoxit_ocr.pdf'
+const inputFilePath = '../input_files/AboutFoxit.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
@@ -40,7 +40,7 @@ const request = axios.create({
   },
 });
 
-function pagesIsScannedTask(input_file){
+function pagesBasicInfoTask(input_file){
   const readStream = fs.createReadStream(inputFilePath)
   readStream.on('error',function (err) {
     console.log('read input file error');
@@ -73,7 +73,7 @@ function pagesIsScannedTask(input_file){
   //Upload a file and create a new workflow task.
   return request({
     method: 'post',
-    url: '/document/pagesIsScanned',
+    url: '/document/pagesBasicInfo',
     headers: formData.getHeaders(),
     data: formData
   }).then(function (res) {
@@ -127,14 +127,14 @@ function getTaskInfo(taskId){
 
 function pollForResult(taskId, intervalInMilliSeconds = 2000){
   return new Promise(function(resolve, reject){
-    // poll for task status and once task is completed resolve the promise with pagesIsScannedResult
+    // poll for task status and once task is completed resolve the promise with pagesBasicInfo
     let timeout
     function poll(){
       if(timeout){clearTimeout(timeout)}
       getTaskInfo(taskId).then(function(taskInfo){
         if(taskInfo.percentage === 100){
           console.log("Task completed.")
-          resolve(taskInfo.pagesIsScannedResult)
+          resolve(taskInfo.pagesInfo)
         }else{
           setTimeout(poll, intervalInMilliSeconds)
         }
@@ -152,15 +152,15 @@ function pollForResult(taskId, intervalInMilliSeconds = 2000){
 }
 
 async function start(){
-  const taskId = await pagesIsScannedTask(inputFilePath)
-  const pagesIsScannedResult = await pollForResult(taskId)
-  console.log(JSON.stringify(pagesIsScannedResult, null, 2));
+  const taskId = await pagesBasicInfoTask(inputFilePath)
+  const pagesInfo = await pollForResult(taskId)
+  console.log(JSON.stringify(pagesInfo, null, 2));
 }
  
 start().then(function(){
-  console.log("Check scanned pages successfully!");
+  console.log("Get pages basic info successfully!");
   process.exit(0)
 }).catch(function(err){
-  console.log("Check scanned pages: " + err);
+  console.log("Get pages basic info: " + err);
   process.exit(1)
 })
