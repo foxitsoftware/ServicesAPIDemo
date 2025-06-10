@@ -65,7 +65,7 @@ public class Sign {
     private static final String output_file_path = "output_files/sign/AboutFoxitSign.pdf";
     
     // TODO: replace with server base url
-    private static final String base_url = "https://servicesapi.foxitsoftware.cn/api";
+    private static final String base_url = "https://servicesapi-devcn.connectedpdf.com/api";
 
     private static final OkHttpClient client = new OkHttpClient().newBuilder()
                                                     .connectTimeout(60, TimeUnit.SECONDS)
@@ -126,7 +126,7 @@ public class Sign {
         query_params.put("text", text);
         query_params.put("location", location);
         query_params.put("reason", reason);
-        query_params.put("contact_info", contact_info);
+        query_params.put("contactInfo", contact_info);
 
         String query_string = query_params.entrySet().stream()
             .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
@@ -158,7 +158,7 @@ public class Sign {
             .addFormDataPart("text", text)
             .addFormDataPart("location", location)
             .addFormDataPart("reason", reason)
-            .addFormDataPart("contact_info", contact_info)
+            .addFormDataPart("contactInfo", contact_info)
 			.build();
         
         Request request = new Request.Builder()
