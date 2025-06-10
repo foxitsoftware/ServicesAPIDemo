@@ -21,7 +21,7 @@ class Pages_basic_info {
         $this->clientId = '';
         $this->secretId = '';
         $this->sn = 'testsn';
-        $this->inputFilePath = '../input_files/AboutFoxit_ocr.pdf';
+        $this->inputFilePath = '../input_files/AboutFoxit.pdf';
         $this->baseUrl = 'https://servicesapi.foxitsoftware.cn/api';
     }
 
@@ -35,7 +35,7 @@ class Pages_basic_info {
         $this->secretId = $credentials['client_credentials']['secret_id'];
     }
 
-    private function pagesIsScannedTask($inputFile) {
+    private function pagesBasicInfoTask($inputFile) {
         $queryParams = [
             'clientId' => $this->clientId,
             'pageRange' => "all",
@@ -55,7 +55,7 @@ class Pages_basic_info {
 			'pageRange' => "all"
         ];
 
-        $ch = curl_init($this->buildUri('document/pagesIsScanned') . '?' . http_build_query($params));
+        $ch = curl_init($this->buildUri('document/pagesBasicInfo') . '?' . http_build_query($params));
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
@@ -117,9 +117,9 @@ class Pages_basic_info {
         $responseData = json_decode($response, true);
         if ($responseData['code'] === 0) {
             $percentage = $responseData['data']['taskInfo']['percentage'];
-            $pagesIsScannedResult = $percentage === 100 ? $responseData['data']['taskInfo']['pagesIsScannedResult'] : 0;
+            $pagesInfoResult = $percentage === 100 ? $responseData['data']['taskInfo']['pagesInfo'] : 0;
             echo "Task process is: $percentage%\n";
-            return [$pagesIsScannedResult, $percentage];
+            return [$pagesInfoResult, $percentage];
         } else {
             throw new Exception($responseData['msg']);
         }
@@ -128,10 +128,10 @@ class Pages_basic_info {
     private function pollForResult($taskId, $intervalInMilliseconds = 2000) {
         while (true) {
             try {
-                list($pagesIsScannedResult, $percentage) = $this->getTaskInfo($taskId);
+                list($pagesInfoResult, $percentage) = $this->getTaskInfo($taskId);
                 if ($percentage === 100) {
                     echo "Task completed.\n";
-                    return $pagesIsScannedResult;
+                    return $pagesInfoResult;
                 }
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), 'The task is running') !== false) {
@@ -147,17 +147,17 @@ class Pages_basic_info {
     public function start() {
         try {
             $this->getCredentialsParams('../foxit_cloud_api_credentials.json');
-            $taskId = $this->pagesIsScannedTask($this->inputFilePath);
-            $pagesIsScannedResult = $this->pollForResult($taskId);
-			$jsonData = json_encode($pagesIsScannedResult, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            $taskId = $this->pagesBasicInfoTask($this->inputFilePath);
+            $pagesInfoResult = $this->pollForResult($taskId);
+			$jsonData = json_encode($pagesInfoResult, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 			echo $jsonData;
 			echo "\n";
-            echo "Scanned PDF file successfully!\n";
+            echo "Get page basic info successfully!\n";
         } catch (Exception $e) {
             echo $e->getMessage() . "\n";
         }
     }
 }
 
-$pages_is_scanned = new Pages_is_scanned();
-$pages_is_scanned->start();
+$pages_basic_info = new Pages_basic_info();
+$pages_basic_info->start();
