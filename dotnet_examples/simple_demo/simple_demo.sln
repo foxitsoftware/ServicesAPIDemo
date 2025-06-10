@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ocr", "ocr\ocr.csproj", "{1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pages_is_scanned", "pages_is_scanned\pages_is_scanned.csproj", "{D5B36524-B217-4FFA-ABF1-56098D5AE29E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pages_basic_info", "pages_basic_info\pages_basic_info.csproj", "{BA0CE5C5-5DD6-652C-058C-7927FDA48442}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{D5B36524-B217-4FFA-ABF1-56098D5AE29E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5B36524-B217-4FFA-ABF1-56098D5AE29E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5B36524-B217-4FFA-ABF1-56098D5AE29E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA0CE5C5-5DD6-652C-058C-7927FDA48442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA0CE5C5-5DD6-652C-058C-7927FDA48442}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA0CE5C5-5DD6-652C-058C-7927FDA48442}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA0CE5C5-5DD6-652C-058C-7927FDA48442}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
