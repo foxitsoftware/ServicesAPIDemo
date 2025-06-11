@@ -85,7 +85,7 @@ function pagesBasicInfoTask(input_file){
       return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
-    console.log("PagesIsScanned task error:", err.response.data);
+    console.log("PagesBasicInfo task error:", err.response.data);
     throw err
   })
 }
