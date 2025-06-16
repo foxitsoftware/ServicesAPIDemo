@@ -65,7 +65,7 @@ public class Sign {
     private static final String output_file_path = "output_files/sign/AboutFoxitSign.pdf";
     
     // TODO: replace with server base url
-    private static final String base_url = "https://servicesapi-devcn.connectedpdf.com/api";
+    private static final String base_url = "https://servicesapi.foxitsoftware.cn/api";
 
     private static final OkHttpClient client = new OkHttpClient().newBuilder()
                                                     .connectTimeout(60, TimeUnit.SECONDS)
