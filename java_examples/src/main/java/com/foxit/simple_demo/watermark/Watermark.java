@@ -9,7 +9,7 @@
 //
 // This file contains an example to demonstrate how to use Foxit Cloud API to add watermark to a PDF document.
 
-package com.foxit.simple_demo.split;
+package com.foxit.simple_demo.watermark;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
+import java.util.List;
+import java.util.ArrayList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -100,19 +101,43 @@ public class Watermark {
     }
 
     private String watermarkTask(String input_file_path) throws Exception {
-        String config_string = "{\r\n  \"pageCount\": 1\r\n}";
-        Map<String, String> query_params = new TreeMap<>();
-        query_params.put("clientId", client_id);
-        query_params.put("config", config_string);
-        String query_string = query_params.entrySet().stream()
-            .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
-            .collect(Collectors.joining("&"));
+        String  font_string = "{\r\n  \"text\": \"Foxit Cloud API\",\r\n  \"size\": 12,\r\n  \"fontName\": \"Helvetica\",\r\n  \"color\": \"#FF0000\",\r\n  \"style\": 0, \r\n  \"alignment\": 0, \r\n  \"lineSpace\": 1 \r\n}";
+        Map<String, Object> queryParams = new TreeMap<>();
+        queryParams.put("clientId", client_id);
+        queryParams.put("font", font_string);
+        queryParams.put("pageRange", "all");	
+        queryParams.put("type", "textObject");
+        queryParams.put("scaleX", 1);
+        queryParams.put("scaleY", 1);
+        queryParams.put("offsetX", 20);
+        queryParams.put("offsetY", 20);
+        queryParams.put("flagAsAnnot", 1);
+        queryParams.put("flagOnTopOfPage", 1);
+        queryParams.put("flagNoPrint", 0);
+        queryParams.put("flagInvisible", 0);
+        queryParams.put("opacity", 60);
+        queryParams.put("position", 1);
+        queryParams.put("rotation", 0);
+        List<Map.Entry<String, Object>> sortedParams 
+		= new ArrayList<>(queryParams.entrySet());
+        sortedParams.sort(Map.Entry.comparingByKey());
 
-        query_string += "&sk=" + secret_id;
+        StringBuilder queryStringBuilder = new StringBuilder();
+        for (Map.Entry<String, Object> entry : sortedParams) {
+            String key = entry.getKey();
+            String value = String.valueOf(entry.getValue());
+            queryStringBuilder.append(key)
+                    .append("=")
+                    .append(URLEncoder.encode(value, "UTF-8"))
+                    .append("&");
+        }
 
-        sn = generateMD5(query_string);
+        queryStringBuilder.append("sk=").append(URLEncoder.encode(secret_id, "UTF-8"));
 
-        HttpUrl url = buildURI("document/split")
+        String queryString = queryStringBuilder.toString();
+        sn = generateMD5(queryString);
+
+        HttpUrl url = buildURI("document/watermark")
             .addQueryParameter("sn", sn)
             .addQueryParameter("clientId", client_id)
             .build();
@@ -122,7 +147,20 @@ public class Watermark {
             .setType(MultipartBody.FORM)
             .addFormDataPart("inputDocument", file_name, RequestBody
             .create(new File(input_file_path), MediaType.parse("text/plain")))
-            .addFormDataPart("config", config_string)
+            .addFormDataPart("font", font_string)
+            .addFormDataPart("pageRange", "all")
+            .addFormDataPart("type", "textObject")
+            .addFormDataPart("scaleX", String.valueOf(1))
+            .addFormDataPart("scaleY", String.valueOf(1))
+            .addFormDataPart("offsetX", String.valueOf(20))
+            .addFormDataPart("offsetY", String.valueOf(20))
+            .addFormDataPart("flagAsAnnot", String.valueOf(1))
+            .addFormDataPart("flagOnTopOfPage", String.valueOf(1))
+            .addFormDataPart("flagNoPrint", String.valueOf(0))
+            .addFormDataPart("flagInvisible", String.valueOf(0))
+            .addFormDataPart("opacity", String.valueOf(60))
+            .addFormDataPart("position", String.valueOf(1))
+            .addFormDataPart("rotation", String.valueOf(0))
 			.build();
         
         Request request = new Request.Builder()
@@ -251,7 +289,7 @@ public class Watermark {
   
         Watermark watermark = new Watermark();
         watermark.getCredentialsParams("foxit_cloud_api_credentials.json");
-        String task_id = watermark.splitPDFTask(input_file_path);
+        String task_id = watermark.watermarkTask(input_file_path);
         String doc_id = watermark.pollForDocId(task_id, 2000);
         watermark.downLoadFileByDocId(doc_id, output_file_path);
         System.out.println("Add watermark successfully!");
@@ -259,7 +297,7 @@ public class Watermark {
 
     public static void main (String[] args) {
         try {
-            Watermark.watermark();
+            Watermark.start();
         } catch (RestException e) {
             System.out.println(e.getMessage());
         } catch (Exception e) {
