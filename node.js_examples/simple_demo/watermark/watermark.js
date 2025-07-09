@@ -31,7 +31,7 @@ const outputFilePath = '../output_files/watermark/Watermark.pdf'
 
 // create axios instance and setup common request config 
 const request = axios.create({
-  baseURL: 'https://servicesapi.foxitsoftware.cn/api',
+  baseURL: 'https://servicesapi-devcn.connectedpdf.com/api',
   timeout: 60 * 1000,
  
   // common params for every api call
@@ -67,7 +67,7 @@ function watermarkTask(inputFilePath){
   'flagAsAnnot': 1,
   'flagOnTopOfPage' : 1,
   'flagNoPrint' : 0,
-  'flagInvisible' ：0,
+  'flagInvisible' : 0,
   'opacity' : 60,
   'position' : 1,
   'rotation' : 0
@@ -75,7 +75,7 @@ function watermarkTask(inputFilePath){
 
   const sortedParams = Object.fromEntries(Object.entries(queryParams).sort());
   // Stringify the parameters
-  const querystringified = querystring.stringify(sortedParams);
+  const querystringified = querystring.stringify(sortedParams).replace(/%20/g, '+');;;
 
   const queryStringWithSecret = querystringified + '&sk=' + secretId;
   // Generate signature using md5
@@ -92,8 +92,21 @@ function watermarkTask(inputFilePath){
   const formData = new FormData()
   formData.append('inputDocument', readStream)
 
-  formData.append('config', configString)
-
+  formData.append('pageRange', 'all')
+  formData.append('font', fontString)
+  formData.append('type', 'textObject')
+  formData.append('scaleX', 1)
+  formData.append('scaleY', 1)
+  formData.append('offsetX', 20)
+  formData.append('offsetY', 20)
+  formData.append('flagAsAnnot', 1)
+  formData.append('flagOnTopOfPage', 1)
+  formData.append('flagNoPrint', 0)
+  formData.append('flagInvisible', 0)
+  formData.append('opacity', 60)
+  formData.append('position', 1)
+  formData.append('rotation', 0)
+  
   //Upload a file and create a new workflow task.
   return request({
     method: 'post',
@@ -109,7 +122,7 @@ function watermarkTask(inputFilePath){
       return resultData.data.taskInfo.taskId
     }
   }).catch(function (err) {
-    console.log("Remove Password for pdf task error:", err.response.data);
+    console.log("Add watermark for pdf task error:", err.response.data);
     throw err
   })
 }
@@ -227,7 +240,7 @@ async function start(){
   if(!fs.existsSync(outPath)){
     fs.mkdirSync(outPath);            
   }          
-  const taskId = await splitPDFTask(inputFilePath)
+  const taskId = await watermarkTask(inputFilePath)
   const docId = await pollForDocId(taskId)
   await downloadFileByDocId(docId, outputFilePath)
 }
