@@ -35,10 +35,23 @@ class Watermark
 	
     public function watermarkTask($inputFilePath, $password)
     {
-		$configString = "{\r\n  \"pageCount\": 1\r\n}";
+		$fontString = "{\r\n  \"text\": \"Foxit Cloud API\",\r\n  \"size\": 12,\r\n  \"fontName\": \"Helvetica\",\r\n  \"color\": \"#FF0000\",\r\n  \"style\": 0, \r\n  \"alignment\": 0, \r\n  \"lineSpace\": 1 \r\n}";
         $queryParams = [
             'clientId' => $this->clientId,
-            'config' => $configString,
+            'font' => $fontString,
+		    'pageRange' => 'all',
+			'type' => 'textObject',
+			'scaleX' =>  1,
+			'scaleY' =>  1,  
+			'offsetX' =>  20, 
+			'offsetY' =>  20,
+			'flagAsAnnot' => 1,
+			'flagOnTopOfPage' => 1,
+			'flagNoPrint' => 0,
+			'flagInvisible' => 0,
+			'opacity' => 60,
+			'position' => 1,
+			'rotation' => 0
         ];
         ksort($queryParams);
         $queryString = http_build_query($queryParams) . '&sk=' . rawurlencode($this->secretId);
@@ -51,11 +64,24 @@ class Watermark
 
         $file = new CURLFile($inputFilePath, 'application/pdf', basename($inputFilePath));
         $postData = [
-            'config' => $configString,
-            'inputDocument' => $file
+            'font' => $fontString,
+            'inputDocument' => $file,
+			'pageRange' => 'all',
+			'type' => 'textObject',
+			'scaleX' =>  1,
+			'scaleY' =>  1,  
+			'offsetX' =>  20, 
+			'offsetY' =>  20,
+			'flagAsAnnot' => 1,
+			'flagOnTopOfPage' => 1,
+			'flagNoPrint' => 0,
+			'flagInvisible' => 0,
+			'opacity' => 60,
+			'position' => 1,
+			'rotation' => 0
         ];
 
-        $ch = curl_init($this->buildUri('document/split') . '?' . http_build_query($params));
+        $ch = curl_init($this->buildUri('document/watermark') . '?' . http_build_query($params));
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
@@ -170,7 +196,7 @@ class Watermark
             }
 
             $this->getCredentialsParams('../foxit_cloud_api_credentials.json');
-            $taskId = $this->splitTask($this->inputFilePath, "123");
+            $taskId = $this->watermarkTask($this->inputFilePath, "123");
             $docId = $this->pollForDocId($taskId);
             $this->downloadFileByDocId($docId, $this->outputFilePath);
             echo "Add watermark successfully!\n";
