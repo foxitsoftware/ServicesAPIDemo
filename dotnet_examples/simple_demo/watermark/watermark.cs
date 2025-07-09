@@ -68,30 +68,33 @@ namespace WatermarkCS
 
         private string WatermarkTask(string input_file_path)
         {
-            string font_string = "{\r\n  \"text\": Foxit Cloud API,\r\n  \"size\": 12,\r\n  \"fontName\": \"Helvetica\",\r\n  \"color\": \"0xFF0000\",\r\n  \"style\": 0 \r\n, \"alignment\": 0 \r\n, \"lineSpace\": 1 \r\n}";
+            string font_string = "{\r\n  \"text\": \"Foxit Cloud API\",\r\n  \"size\": 12,\r\n  \"fontName\": \"Helvetica\",\r\n  \"color\": \"#FF0000\",\r\n  \"style\": 0, \r\n  \"alignment\": 0, \r\n  \"lineSpace\": 1 \r\n}";
 
-            var query_params = new Dictionary<string, string>
+            var query_params = new Dictionary<string, object>
             {
                 { "clientId", client_id },
                 { "pageRange", "all"},
                 { "type", "textObject" },
-                { "position", 1.ToString()},
-                { "flagAsAnnot", 1.ToString() },
-                { "flagOnTopOfPage", 1.ToString()},
-                { "flagNoPrint", 1.ToString() }, 
-                { "flagInvisible", 0.ToString() }, 
-                { "scaleX", 1.ToString() }, 
-                { "scaleY", 1.ToString()},
-                { "offsetX", 10.ToString() },
-                { "offsetY", 10.ToString()},
-                { "rotation", 0.ToString() },
-                { "opacity", 60.ToString()},
+                { "position", 1},
+                { "scaleX", 1 }, 
+                { "scaleY", 1},
+                { "offsetX", 20 },
+                { "offsetY", 20 },
+                { "rotation", 0 },
+                { "opacity", 60},
+                { "flagAsAnnot", 1},
+                { "flagOnTopOfPage", 1},
+                { "flagNoPrint", 0},
+                { "flagInvisible", 0},
                 { "font", font_string }
             };
 
-            var sorted_params = query_params.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => kv.Value);
-            var query_string = string.Join("&", sorted_params.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(kv.Value)}"));
-            query_string += "&sk=" + secret_id;
+            var sorted_params = query_params.OrderBy(kv => kv.Key);
+            var query_string = string.Join("&",
+                sorted_params.Select(kv => $"{kv.Key}={WebUtility.UrlEncode(Convert.ToString(kv.Value, System.Globalization.CultureInfo.InvariantCulture))}")
+            );
+
+            query_string += "&sk=" + WebUtility.UrlEncode(secret_id);
             sn = GenerateMD5(query_string);
 
             var request = new RestRequest("document/watermark", Method.Post);
@@ -102,16 +105,17 @@ namespace WatermarkCS
               .AddFile("inputDocument", input_file_path, "multipart/form-data")
               .AddParameter("pageRange", "all")
               .AddParameter("type", "textObject")
-              .AddParameter("position", 1)
+              .AddParameter("scaleX", 1)
+              .AddParameter("scaleY", 1)
+              .AddParameter("offsetX", 20)
+              .AddParameter("offsetY", 20)
               .AddParameter("flagAsAnnot", 1)
               .AddParameter("flagOnTopOfPage", 1)
               .AddParameter("flagNoPrint", 0)
-              .AddParameter("scaleX", 1)
-              .AddParameter("scaleY", 1)
-              .AddParameter("offsetX", 10)
-              .AddParameter("offsetY", 10)
-              .AddParameter("rotation", 0)
+              .AddParameter("flagInvisible", 0)
               .AddParameter("opacity", 60)
+              .AddParameter("position", 1)
+              .AddParameter("rotation", 0)
               .AddParameter("font", font_string);
             // Upload a file and create a new workflow task.
             var response = client.ExecuteAsync(request);
