@@ -20,6 +20,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using RestSharp;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace CreatePDFFromOthersCS
 {
@@ -64,6 +66,17 @@ namespace CreatePDFFromOthersCS
                 return BitConverter.ToString(hashbytes).Replace("-", "").ToLower();
             }
         }
+        private static StreamContent CreateEncodedFileContent(string filePath, string fieldName, string mediaType = "application/octet-stream")
+        {
+            var fileContent = new StreamContent(new FileStream(filePath, FileMode.Open, FileAccess.Read));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
+            var disposition = new ContentDispositionHeaderValue("form-data") { Name = fieldName };
+            disposition.FileNameStar = Path.GetFileName(filePath);
+            disposition.FileName = Uri.EscapeDataString(Path.GetFileName(filePath));
+            fileContent.Headers.ContentDisposition = disposition;
+            return fileContent;
+        }
+
         //format can be "word", "excel", "ppt", "image", "text".
         private string CreatePDFTask(string input_file_path, string format = "word")
         {
@@ -77,26 +90,26 @@ namespace CreatePDFFromOthersCS
             query_string += "&sk=" + secret_id;
             sn = GenerateMD5(query_string);
 
-            var request = new RestRequest("document/create", Method.Post);
-            request
-              .AddHeader("Accept", "application/json")
-              .AddQueryParameter("sn", sn)
-              .AddQueryParameter("clientId", client_id)
-              .AddFile("inputDocument", input_file_path, "multipart/form-data")
-              .AddParameter("format", format);
-            // Upload a file and create a new workflow task.
-            var response = client.ExecuteAsync(request);
+            string url = $"https://servicesapi.foxitsoftware.cn/api/document/create?sn={sn}&clientId={client_id}";
 
-            if (response.Result.IsSuccessful &&
-                  response.Result.ResponseStatus == ResponseStatus.Completed)
+            using var httpClient = new HttpClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(1);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            using var formData = new MultipartFormDataContent();
+            formData.Add(CreateEncodedFileContent(input_file_path, "inputDocument"));
+            formData.Add(new StringContent(format), "format");
+
+            var response = httpClient.PostAsync(url, formData).Result;
+            string content = response.Content.ReadAsStringAsync().Result;
+
+            if (response.IsSuccessStatusCode)
             {
-                dynamic json = Newtonsoft.Json.Linq.JToken.Parse(response.Result.Content) as dynamic;
+                dynamic json = Newtonsoft.Json.Linq.JToken.Parse(content);
                 if (json.code == 0) return json.data.taskInfo.taskId;
             }
 
-            string message = string.Format("http response error: {0} : {1}",
-                   response.Result.StatusDescription, response.Result.Content);
-            throw new RestException(response.Result, message, response.Result.ErrorException);
+            throw new RestException(null, $"http error: {content}", null);
         }
 
         private string GetTaskInfo(string task_id)

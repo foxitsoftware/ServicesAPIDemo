@@ -21,6 +21,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using RestSharp;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace WatermarkCS
 {
@@ -66,6 +68,17 @@ namespace WatermarkCS
             }
         }
 
+        private static StreamContent CreateEncodedFileContent(string filePath, string fieldName, string mediaType = "application/octet-stream")
+        {
+            var fileContent = new StreamContent(new FileStream(filePath, FileMode.Open, FileAccess.Read));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
+            var disposition = new ContentDispositionHeaderValue("form-data") { Name = fieldName };
+            disposition.FileNameStar = Path.GetFileName(filePath);
+            disposition.FileName = Uri.EscapeDataString(Path.GetFileName(filePath));
+            fileContent.Headers.ContentDisposition = disposition;
+            return fileContent;
+        }
+
         private string WatermarkTask(string input_file_path)
         {
             string font_string = "{\r\n  \"text\": \"Foxit Cloud API\",\r\n  \"size\": 12,\r\n  \"fontName\": \"Helvetica\",\r\n  \"color\": \"#FF0000\",\r\n  \"style\": 0, \r\n  \"alignment\": 0, \r\n  \"lineSpace\": 1 \r\n}";
@@ -97,38 +110,39 @@ namespace WatermarkCS
             query_string += "&sk=" + WebUtility.UrlEncode(secret_id);
             sn = GenerateMD5(query_string);
 
-            var request = new RestRequest("document/watermark", Method.Post);
-            request
-              .AddHeader("Accept", "application/json")
-              .AddQueryParameter("sn", sn)
-              .AddQueryParameter("clientId", client_id)
-              .AddFile("inputDocument", input_file_path, "multipart/form-data")
-              .AddParameter("pageRange", "all")
-              .AddParameter("type", "textObject")
-              .AddParameter("scaleX", 1)
-              .AddParameter("scaleY", 1)
-              .AddParameter("offsetX", 20)
-              .AddParameter("offsetY", 20)
-              .AddParameter("flagAsAnnot", 1)
-              .AddParameter("flagOnTopOfPage", 1)
-              .AddParameter("flagNoPrint", 0)
-              .AddParameter("flagInvisible", 0)
-              .AddParameter("opacity", 60)
-              .AddParameter("position", 1)
-              .AddParameter("rotation", 0)
-              .AddParameter("font", font_string);
-            // Upload a file and create a new workflow task.
-            var response = client.ExecuteAsync(request);
-            if (response.Result.IsSuccessful &&
-                  response.Result.ResponseStatus == ResponseStatus.Completed)
+            string url = $"https://servicesapi.foxitsoftware.cn/api/document/watermark?sn={sn}&clientId={client_id}";
+
+            using var httpClient = new HttpClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(1);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            using var formData = new MultipartFormDataContent();
+            formData.Add(CreateEncodedFileContent(input_file_path, "inputDocument", "application/pdf"));
+            formData.Add(new StringContent("all"), "pageRange");
+            formData.Add(new StringContent("textObject"), "type");
+            formData.Add(new StringContent("1"), "scaleX");
+            formData.Add(new StringContent("1"), "scaleY");
+            formData.Add(new StringContent("20"), "offsetX");
+            formData.Add(new StringContent("20"), "offsetY");
+            formData.Add(new StringContent("1"), "flagAsAnnot");
+            formData.Add(new StringContent("1"), "flagOnTopOfPage");
+            formData.Add(new StringContent("0"), "flagNoPrint");
+            formData.Add(new StringContent("0"), "flagInvisible");
+            formData.Add(new StringContent("60"), "opacity");
+            formData.Add(new StringContent("1"), "position");
+            formData.Add(new StringContent("0"), "rotation");
+            formData.Add(new StringContent(font_string), "font");
+
+            var response = httpClient.PostAsync(url, formData).Result;
+            string content = response.Content.ReadAsStringAsync().Result;
+
+            if (response.IsSuccessStatusCode)
             {
-                dynamic json = Newtonsoft.Json.Linq.JToken.Parse(response.Result.Content) as dynamic;
+                dynamic json = Newtonsoft.Json.Linq.JToken.Parse(content);
                 if (json.code == 0) return json.data.taskInfo.taskId;
             }
 
-            string message = string.Format("http response error: {0} : {1}",
-                   response.Result.ErrorMessage, response.Result.Content);
-            throw new RestException(response.Result, message, response.Result.ErrorException);
+            throw new RestException(null, $"http error: {content}", null);
         }
 
         private string GetTaskInfo(string task_id)
