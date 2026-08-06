@@ -47,11 +47,11 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 final class RestException extends Exception{
-    public Response response;
+    public String responseBody;
 
-    public RestException(Response r, String message){ 
+    public RestException(String body, String message){ 
         super(message);
-        response = r;
+        responseBody = body;
     }
 }
 
@@ -173,7 +173,7 @@ public class Pages_basic_info {
             .build();
         
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new RestException(response, "Unexpected code " + response);
+            if (!response.isSuccessful()) throw new RestException(response.body().string(), "Unexpected code " + response);
             String jsonData = response.body().string();
             JsonParser parser = new JsonParser();
             JsonObject object = (JsonObject) parser.parse(jsonData);
@@ -184,7 +184,7 @@ public class Pages_basic_info {
                 String task_info = object_data.get("taskInfo").toString();
                 return task_info;
             } else {
-                throw new RestException(response, "Unexpected code " + response);
+                throw new RestException(jsonData, "Unexpected code " + response);
             }        }       
     }
     
@@ -199,7 +199,7 @@ public class Pages_basic_info {
                     return object.get("pagesInfo");
                 }
             } catch (RestException e) {
-                String jsonData = e.response.body().string();
+                String jsonData = e.responseBody;
                 JsonObject object = (JsonObject) parser.parse(jsonData);
                 JsonObject object_data = object.get("data").getAsJsonObject();
                 String detail = object_data.get("detail").getAsString();
